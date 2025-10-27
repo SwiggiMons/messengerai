@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 import requests
 import openai
 import os
@@ -10,13 +10,12 @@ load_dotenv()
 # 🔹 Khai báo các biến cần thiết
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")   # Token Facebook Page
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")             # Token để verify webhook
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "aimessengerchatbot")  # Token để verify webhook
 
 openai.api_key = OPENAI_API_KEY
 
 # 🔹 Khởi tạo FastAPI app
 app = FastAPI()
-
 
 # ✅ Endpoint test server
 @app.get("/")
@@ -25,35 +24,43 @@ def home():
 
 
 # ✅ Facebook Webhook Verification
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "aimessengerchatbot")
-
 @app.get("/webhook")
 async def verify_webhook(request: Request):
-    mode = request.query_params.get("hub.mode")
-    token = request.query_params.get("hub.verify_token")
-    challenge = request.query_params.get("hub.challenge")
+    try:
+        mode = request.query_params.get("hub.mode")
+        token = request.query_params.get("hub.verify_token")
+        challenge = request.query_params.get("hub.challenge")
 
-    if mode == "subscribe" and token == VERIFY_TOKEN:
-        return Response(content=challenge)
-    else:
-        return Response(content="Verification failed", status_code=403)
+        if mode == "subscribe" and token == VERIFY_TOKEN:
+            return Response(content=challenge, media_type="text/plain", status_code=200)
+        else:
+            return Response(content="Verification failed", status_code=403)
+    except Exception as e:
+        print(f"Webhook verify error: {e}")
+        return Response(content="Internal server error", status_code=500)
+
 
 # ✅ Xử lý tin nhắn người dùng gửi đến page
 @app.post("/webhook")
 async def receive_message(request: Request):
-    data = await request.json()
+    try:
+        data = await request.json()
 
-    for entry in data.get("entry", []):
-        for message_event in entry.get("messaging", []):
-            sender_id = message_event["sender"]["id"]
+        for entry in data.get("entry", []):
+            for message_event in entry.get("messaging", []):
+                sender_id = message_event["sender"]["id"]
 
-            # Nếu người dùng gửi tin nhắn text
-            if "message" in message_event:
-                user_message = message_event["message"].get("text", "")
-                if user_message:
-                    send_message(sender_id, ai_reply(user_message))
+                # Nếu người dùng gửi tin nhắn text
+                if "message" in message_event:
+                    user_message = message_event["message"].get("text", "")
+                    if user_message:
+                        reply = ai_reply(user_message)
+                        send_message(sender_id, reply)
 
-    return {"status": "ok"}
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"Webhook message error: {e}")
+        return {"status": "error", "detail": str(e)}
 
 
 # 🔹 Hàm sinh phản hồi bằng AI
@@ -62,7 +69,7 @@ def ai_reply(prompt):
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a friendly and cute chatbot 💬 that replies politely and naturally."},
+                {"role": "system", "content": "You are a cute, friendly, and natural-sounding AI assistant 💬."},
                 {"role": "user", "content": prompt},
             ],
             temperature=1.0,

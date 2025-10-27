@@ -1,17 +1,18 @@
-# Sử dụng image Python chính thức
+# Sử dụng Python 3.11
 FROM python:3.11-slim
 
 # Đặt thư mục làm việc
 WORKDIR /app
 
-# Copy toàn bộ file dự án vào container
-COPY . .
-
-# Cài đặt các thư viện cần thiết
+# Copy file requirements và cài thư viện
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Mở cổng 10000 (Render mặc định sẽ map port này)
+# Copy toàn bộ project vào container
+COPY . .
+
+# Mở port 10000 (Render thường dùng)
 EXPOSE 10000
 
-# Chạy ứng dụng bằng Uvicorn
+# Chạy server FastAPI bằng uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
