@@ -31,13 +31,19 @@ async def verify_webhook(request: Request):
         token = request.query_params.get("hub.verify_token")
         challenge = request.query_params.get("hub.challenge")
 
+        print("🧩 DEBUG Webhook verify:", mode, token, challenge)
+        print("VERIFY_TOKEN in server:", VERIFY_TOKEN)
+
         if mode == "subscribe" and token == VERIFY_TOKEN:
+            print("✅ Webhook verified successfully!")
             return Response(content=challenge, media_type="text/plain", status_code=200)
         else:
+            print("❌ Verification failed.")
             return Response(content="Verification failed", status_code=403)
     except Exception as e:
-        print(f"Webhook verify error: {e}")
+        print(f"🔥 Webhook verify error: {e}")
         return Response(content="Internal server error", status_code=500)
+
 
 
 # ✅ Xử lý tin nhắn người dùng gửi đến page
