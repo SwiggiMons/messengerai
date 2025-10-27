@@ -10,7 +10,8 @@ load_dotenv()
 # 🔹 Khai báo các biến cần thiết
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")   # Token Facebook Page
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "aimessengerchatbot")  # Token để verify webhook
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "aimessengerchatbot")
+  # Token để verify webhook
 
 openai.api_key = OPENAI_API_KEY
 
@@ -75,7 +76,7 @@ def ai_reply(prompt):
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a cute, friendly, and natural-sounding AI assistant 💬."},
+                {"role": "system", "content": "You are a friendly AI assistant 💬."},
                 {"role": "user", "content": prompt},
             ],
             temperature=1.0,
@@ -84,7 +85,8 @@ def ai_reply(prompt):
         reply = response.choices[0].message.content.strip()
         return reply
     except Exception as e:
-        print(f"AI Error: {e}")
+        print(f"AI Error: {e}")  # in ra log Render
+        return f"AI error: {e}"
         return "Oops! Something went wrong with the AI response 😅"
 
 
