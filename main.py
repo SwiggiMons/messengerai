@@ -10,8 +10,7 @@ load_dotenv()
 # 🔹 Khai báo các biến cần thiết
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")   # Token Facebook Page
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "aimessengerchatbot")
-  # Token để verify webhook
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "aimessengerchatbot")  # Token để verify webhook
 
 openai.api_key = OPENAI_API_KEY
 
@@ -35,9 +34,10 @@ async def verify_webhook(request: Request):
         print("🧩 DEBUG Webhook verify:", mode, token, challenge)
         print("VERIFY_TOKEN in server:", VERIFY_TOKEN)
 
+        # ⚙️ Nếu token khớp và mode là subscribe → trả về challenge
         if mode == "subscribe" and token == VERIFY_TOKEN:
             print("✅ Webhook verified successfully!")
-            return Response(content=challenge, media_type="text/plain", status_code=200)
+            return Response(content=str(challenge or ""), media_type="text/plain", status_code=200)
         else:
             print("❌ Verification failed.")
             return Response(content="Verification failed", status_code=403)
@@ -46,12 +46,12 @@ async def verify_webhook(request: Request):
         return Response(content="Internal server error", status_code=500)
 
 
-
 # ✅ Xử lý tin nhắn người dùng gửi đến page
 @app.post("/webhook")
 async def receive_message(request: Request):
     try:
         data = await request.json()
+        print("📩 Incoming webhook data:", data)
 
         for entry in data.get("entry", []):
             for message_event in entry.get("messaging", []):
@@ -85,8 +85,7 @@ def ai_reply(prompt):
         reply = response.choices[0].message.content.strip()
         return reply
     except Exception as e:
-        print(f"AI Error: {e}")  # in ra log Render
-        return f"AI error: {e}"
+        print(f"AI Error: {e}")  # In log Render
         return "Oops! Something went wrong with the AI response 😅"
 
 
@@ -102,5 +101,6 @@ def send_message(recipient_id, text):
     try:
         response = requests.post(url, params=params, json=data)
         response.raise_for_status()
+        print(f"✅ Sent message to {recipient_id}: {text}")
     except Exception as e:
         print(f"Send message failed: {e}")
