@@ -20,7 +20,7 @@ app = FastAPI()
 # ✅ Endpoint test server
 @app.get("/")
 def home():
-    return {"message": "🤖 AI Messenger Bot is running and ready to chat!"}
+    return {"message": "🤖 Ayase Messenger Bot is running and ready to chat!"}
 
 
 # ✅ Facebook Webhook Verification
