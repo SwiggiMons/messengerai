@@ -100,7 +100,23 @@ def send_message(recipient_id, text):
 
     try:
         response = requests.post(url, params=params, json=data)
+        print("📩 Sent message payload:", data)
+        print("🌐 Facebook response:", response.text)
         response.raise_for_status()
-        print(f"✅ Sent message to {recipient_id}: {text}")
     except Exception as e:
-        print(f"Send message failed: {e}")
+        print(f"❌ Send message failed: {e}")
+def send_message(recipient_id, text):
+    url = "https://graph.facebook.com/v20.0/me/messages"
+    params = {"access_token": PAGE_ACCESS_TOKEN}
+    data = {
+        "recipient": {"id": recipient_id},
+        "message": {"text": text},
+    }
+
+    try:
+        response = requests.post(url, params=params, json=data)
+        print("📩 Sent message payload:", data)
+        print("🌐 Facebook response:", response.text)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"❌ Send message failed: {e}")
